@@ -12,8 +12,11 @@ It's well known that computation in deep network costs much more time than readi
 
 #Explanation
 config.lua and opts.lua are used to configure parameters of your model or data.
+
 LMDBProvider.lua provides interfaces to access LMDB and wrap the data and method into a torch class.
+
 model.lua provides interfaces to create the model which includes network and optimizer, and wrap the data and method into a torch class.
+
 main.lua has a clear procedure to train network. Producer and consumer threads are coroutine by judging the vector (buffer queue) is full or empty.
 
   

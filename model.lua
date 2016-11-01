@@ -6,7 +6,8 @@ function net_optm:__init(config)
 -- network
     network = self:createNetwork(config)
     self.network = network:float()
-
+    
+    self.parameters, self.gradParameters = self.network:getParameters()
 -- Criterion
     self.criterion = nn.ClassNLLCriterion()
 -- optimState
@@ -183,7 +184,8 @@ function net_optm:trainBatch(inputsCPU, labelsCPU)
     model = self.network
     nClasses = self.config.nClasses
     criterion = self.criterion
-    local parameters, gradParameters = model:getParameters()
+    parameters = self.parameters
+    gradParameters = self.gradParameters
     feval = function(x)
         model:zeroGradParameters()
         outputs = model:forward(inputs)

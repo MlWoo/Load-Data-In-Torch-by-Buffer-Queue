@@ -1,9 +1,9 @@
 # Load-Data-In-Torch-by-Buffer-Queue
-using buffer queue to load data  more efficiently torch
+Using buffer queue to load data  more efficiently torch
 
-Reading data and training network are two main parts of deep learning procedures. It's reasonable to allocate one thread to fetch data because reading data is light-weight work and accessing records orderly is necesary . If the two parts are executed serially, it means computing resource waste because reading data occupies only one thread but all other threads are idle when it runs. 
+Reading data and training network are two main parts of deep learning procedures. It's reasonable to allocate one thread to fetch data because reading data is light-weight work and accessing records orderly is necesary . If the two parts are executed serially, it means computing resources waste because reading data occupies only one thread but all other threads are idle when it runs. 
 
-It's well known that computation in deep network costs much more time than reading data from raw data or database. And the former will use the data which is paovided by the later. So producer-consumer is an appropriate manner to arrange the two parts.
+It's well known that computation in deep network costs much more time than reading data from raw data or database. And the former will use data which is provided by the later. So producer-consumer is an appropriate manner to arrange the two parts.
 
 #Requiments
 1. nnlr(https://github.com/gpleiss/nnlr)

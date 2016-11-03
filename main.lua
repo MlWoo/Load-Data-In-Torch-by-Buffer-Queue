@@ -41,7 +41,6 @@ cmd = opts.parse(arg)
 --  (10)donkey              config  eg.4
 --  (11)access way(0/1)     config  Seq/Random
 -----------------------------------------------------
-
 dataConfig = {
     phase           = cmd.phase,
     dataSource      = cmd.dataSource,
@@ -135,10 +134,11 @@ producer = function(vector, printer, DB)
     local itemNum = batchsize*epochsize
 
     for i = 1, epochs do
-        DB:shuffle()
+        DB:shuffle(itemNum)
         for j = 1, itemNum do
-           Data, Label = DB:cacheSeq(j, itemNum)
+--           Data, Label = DB:cacheSeq(j, itemNum)
 --            Data, Label = DB:cacheRand(j)
+             Data, Label = DB:cache(j, itemNum)
             vector:pushBack({Data, Label})
 --            printer('producer', __threadid, i, j)
         end

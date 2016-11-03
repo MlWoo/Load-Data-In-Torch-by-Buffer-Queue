@@ -106,7 +106,7 @@ end
 
 function LMDBProvider:cacheSeq(pos, itemNum)
     local key, data = self.cursor:get()
-    Data, Labels = self.ExtractFunction(data, key, self.config)
+    local Data, Labels = self.ExtractFunction(data, key, self.config)
     if (pos < itemNum) then
        self.cursor:next()
     elseif(pos == itemNum) then
@@ -115,28 +115,54 @@ function LMDBProvider:cacheSeq(pos, itemNum)
     return Data, Labels
 end
 
-
-function LMDBProvider:shuffle()
-    print('SizeData')
-    local SizeData = self.Source:stat()['entries']
-
-    local dataIndices = torch.range(1, SizeData, 1):long()
-
-    print(SizeData)
-    if (self.config.phase == 'train') then -- and (config.accessWay == 'rand') then --shuffle batches from LMDB
-        dataIndices = dataIndices:index(1, torch.randperm(dataIndices:size(1)):long())
+function Keys(tensor)
+--    print('Keys')
+    local tbl = {}
+    for i=1,tensor:size(1) do
+        tbl[i] = Key(tensor[i])
     end
-    self.shuffleIndices = dataIndices
-    print('SizeData')
-    
+--    print('/Keys')
+    return tbl
 end
 
 
+function LMDBProvider:shuffle(num)
+    print(self.config.accessWay)
+--    print('shuffle')
+    if(self.config.accessWay == 'rand') then --shuffle batches from LMDB
+--    print('shuffle')
+        local SizeData = num
+    
+        local dataIndices = torch.range(1, SizeData, 1):long()
+    
+    --    print(dataIndices:size(1))
+        if (self.config.phase == 'train') then -- and (config.accessWay == 'rand') then --shuffle batches from LMDB
+            dataIndices = dataIndices:index(1, torch.randperm(dataIndices:size(1)):long())
+        end
+        self.shuffleIndices = Keys(dataIndices)
+    else
+        self.shuffleIndices = nil
+    end
+--    print('/shuffle')
+    
+end
+
+function LMDBProvider:cache(pos, itemNum)
+--    print('cache')
+    if (self.config.accessWay == 'rand') then --shuffle batches from LMDB
+        return self:cacheRand(pos)
+    else
+        return self:cacheSeq(pos, itemNum)
+    end
+--    print('/cache')
+end
+
 function LMDBProvider:cacheRand(key_pos)
-    print('value')
+--    print('cacheRand')
     local value = self.shuffleIndices[key_pos]
-    print(value)
+--    print(value)
     local item = self.txn:get(value)
-    Data, Labels = self.ExtractFunction(data, key, self.config)
+    local Data, Labels = self.ExtractFunction(item, key, self.config)
+--    print('/cacheRand')
     return Data, Labels
 end

@@ -23,7 +23,7 @@ end
 
 function net_optm:initOptimState(config)
     optimState = {
-        learningRate = config.LR,
+        learningRate = config.learningRate,
         learningRateDecay = 0.0,
         momentum = config.momentum,
         --dampening = 0.0,
@@ -129,8 +129,9 @@ function net_optm:setTrainOptim(epoch)
     local baseLR = params.learningRate
     local baseWD = params.weightDecay
     local LRs, WDs = self.network:getOptimConfig(1, baseWD)
+    print("net_optm:setTrainOptim, baseLR = ",baseLR)
     if self.config.newRegime then
-        if config.useNNlr then
+        --if config.useNNlr then
             self.optimState = {
                 learningRate = baseLR,
                 learningRateDecay = 0.0,
@@ -138,7 +139,7 @@ function net_optm:setTrainOptim(epoch)
                 weightDecays = WDs,
                 learningRates = LRs,
             }
-        else
+--[[        else
             self.optimState = {
                 learningRate = baseLR,
                 learningRateDecay = 0.0,
@@ -146,7 +147,7 @@ function net_optm:setTrainOptim(epoch)
                 dampening = 0.0,
                 weightDecay = baseWD,
             }
-        end
+        end  ]]--
     end
 
 end

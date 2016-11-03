@@ -138,8 +138,6 @@ producer = function(vector, printer, DB)
     for i = 1, epochs do
         DB:shuffle(itemNum)
         for j = 1, itemNum do
---           Data, Label = DB:cacheSeq(j, itemNum)
---            Data, Label = DB:cacheRand(j)
             Data, Label = DB:cache(j, itemNum)
             vector:pushBack({Data, Label})
 --            printer('producer', __threadid, i, j)
@@ -187,7 +185,6 @@ consumer = function(vector, printer, model)
                printer('train 100 batch time = ', __threadid, j,  interval, ' sec')
             end
                        
---        printer('in batch', __threadid, j)
             for k =1, batchSize do
                 product = vector:popFront()
 --                printer('consumer', __threadid,  j, k)

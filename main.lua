@@ -101,9 +101,11 @@ modelConfig = {
     cache           = config.cache,
     backend         = config.backend,
     retrain         = config.retrain,
+    newRegime 	    = cmd.newRegime,
+
     optimState      = config.optimState
 }
-
+print(modelConfig)
 --****************************************************--
 
 --------------------------------------------------------
@@ -176,12 +178,14 @@ consumer = function(vector, printer, model)
        model:setTrainOptim(i)
 
         for j =1, epochSize do
-            curTick = sys.clock() 
-            if(lastTick ~= nil) then
-                interval = curTick - lastTick
+            if(j%100 == 0) then
+               curTick = sys.clock() 
+               if(lastTick ~= nil) then
+                  interval = curTick - lastTick
+               end
+               lastTick = curTick
+               printer('train 100 batch time = ', __threadid, j,  interval, ' sec')
             end
-            lastTick = curTick
-
                        
 --        printer('in batch', __threadid, j)
             for k =1, batchSize do
@@ -191,12 +195,11 @@ consumer = function(vector, printer, model)
                 batchLabel[k] = product[2]
 
             end
-            printer('out batch', __threadid, j,  interval, 'tick')
 
             mutex:lock()
-            output = model:trainBatch(batchData, batchLabel)
+            totalerr = model:trainBatch(batchData, batchLabel)
             mutex:unlock()
-
+	    printer("epoch=",i,",iteration =",j ,", LR = ", model.optimState.learningRate,", loss = ", totalerr)
 
         end
 --        model:clearState()
@@ -241,7 +244,7 @@ producer_block:run(producer)
 consumer_block:run(consumer)
 
 --**********************************************************--
-
+print(TrainModel.optimState)
 
 
 

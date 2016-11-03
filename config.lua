@@ -10,7 +10,7 @@ for i=1001,#ImageNetClasses.ClassName do
     ImageNetClasses.ClassName[i] = nil
 end
 
-dataPath = '/mnt/2T/imagenet/LMDB/'
+dataPath = '/data/user/xiaohui/LMDB/'
 
 config = 
 {

@@ -176,12 +176,16 @@ consumer = function(vector, printer, model)
        model:setTrainOptim(i)
 
         for j =1, epochSize do
-            curTick = sys.clock() 
-            if(lastTick ~= nil) then
-                interval = curTick - lastTick
-            end
-            lastTick = curTick
+            if(j%100 == 0) then
 
+
+               curTick = sys.clock() 
+               if(lastTick ~= nil) then
+                  interval = curTick - lastTick
+               end
+               lastTick = curTick
+                printer('train 100 batch time = ', __threadid, j,  interval, ' sec')
+            end
                        
 --        printer('in batch', __threadid, j)
             for k =1, batchSize do
@@ -191,12 +195,11 @@ consumer = function(vector, printer, model)
                 batchLabel[k] = product[2]
 
             end
-            printer('out batch', __threadid, j,  interval, 'tick')
 
             mutex:lock()
-            output = model:trainBatch(batchData, batchLabel)
+            totalerr = model:trainBatch(batchData, batchLabel)
             mutex:unlock()
-
+	    printer("epoch = ",__threadid,i,", iteration =",j ,", LR = ", model.baseLR,", loss = ", totalerr)
 
         end
 --        model:clearState()

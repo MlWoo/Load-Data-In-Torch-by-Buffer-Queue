@@ -157,7 +157,7 @@ function net_optm:evalTrain()
     top5_epoch = 0
     loss_epoch = 0
     showErrorRateInteval = 100
---[[
+
    top1_epoch = top1_epoch * 100 / (opt.batchSize * opt.epochSize)
    loss_epoch = loss_epoch / opt.epochSize
 
@@ -170,14 +170,13 @@ function net_optm:evalTrain()
                           .. 'accuracy(%%):\t top-1 %.2f\t',
                        epoch, tm:time().real, loss_epoch, top1_epoch))
    print('\n')
-]]--
 end
 
 function net_optm:trainBatch(inputsCPU, labelsCPU)
 --use every batch    
 --    inputs:resize(inputsCPU:size()):copy(inputsCPU)
 --    labels:resize(labelsCPU:size()):copy(labelsCPU)
-    print('----------------------------------------------------------')
+    --print('----------------------------------------------------------')
 
     local inputs = inputsCPU
     local labels = labelsCPU
@@ -187,6 +186,7 @@ function net_optm:trainBatch(inputsCPU, labelsCPU)
     criterion = self.criterion
     parameters = self.parameters
     gradParameters = self.gradParameters
+    
 
     feval = function(x)
         model:zeroGradParameters()
@@ -213,7 +213,6 @@ function net_optm:trainBatch(inputsCPU, labelsCPU)
             gradOutputs = allGradOutputs
         end
         model:backward(inputs, gradOutputs)
-        print('main computation is over')
         return totalerr, gradParameters
     end
 
@@ -222,7 +221,7 @@ function net_optm:trainBatch(inputsCPU, labelsCPU)
     if model.needsSync then
         model:syncParameters()
     end
-    
+    return totalerr 
 end
 
 

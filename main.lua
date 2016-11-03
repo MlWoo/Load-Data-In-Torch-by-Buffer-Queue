@@ -2,7 +2,7 @@ local paths = require 'paths'
 local tunnel = require 'tunnel'
 local lmdb = require 'lmdb' 
 -------------------------------------------------------
---0
+-- 0
 torch.setdefaulttensortype('torch.FloatTensor')
 
 --***************************************************--
@@ -26,7 +26,7 @@ cmd = opts.parse(arg)
 --****************************************************--
 
 --------------------------------------------------------
---3. create Data configuration
+-- 3. create Data configuration
 --  (0) phase(0/1)          cmd     train/test 
 --  (1) data source(0/1)    cmd     Jpeg/LMDB 
 --  (2) data path           config  string                              
@@ -63,7 +63,7 @@ dataConfig = {
 --****************************************************--
 
 --------------------------------------------------------
---4. create Model configuration
+-- 4. create Model configuration
 --  (0) phase(0/1)          cmd     train/test 
 --  (1) net type            cmd     string
 --  (2) manualSeed          cmd     int
@@ -108,7 +108,7 @@ modelConfig = {
 --****************************************************--
 
 --------------------------------------------------------
---4. read LMDB dataset
+-- 5. read LMDB dataset
 -----------------------------------------------------
 paths.dofile('LMDBProvider.lua')
 TrainDB = LMDBProvider(dataConfig)
@@ -116,71 +116,85 @@ TrainDB = LMDBProvider(dataConfig)
 --****************************************************--
 
 --------------------------------------------------------
---5. read model
+-- 6. read model
 -----------------------------------------------------
-paths.dofile('model.lua')
+paths.dofile('createModel.lua')
 TrainModel = netOptim(modelConfig)
 
 --****************************************************--
 
 --------------------------------------------------------
---6. read producer
+-- 7. read producer
 -----------------------------------------------------
-producer = function(vector, printer, TrainDB)
-    TrainDB:open()
+producer = function(vector, printer, DB)
+    DB:open()
     printer('produce haha')    
-    local epochs = TrainDB.config.epochs
-    local batchsize = TrainDB.config.batchSize
-    local epochsize = TrainDB.config.epochSize
+    local epochs = DB.config.epochs
+    local batchsize = DB.config.batchSize
+    local epochsize = DB.config.epochSize
     local itemNum = batchsize*epochsize
 
-
     for i = 1, epochs do
+        DB:shuffle()
         for j = 1, itemNum do
-            Data, Label = TrainDB:cacheSeq(j, itemNum)
+           Data, Label = DB:cacheSeq(j, itemNum)
+--            Data, Label = DB:cacheRand(j)
             vector:pushBack({Data, Label})
 --            printer('producer', __threadid, i, j)
         end
     end
+    DB:close()
+    
 
 end
 
 --****************************************************--
 
 --------------------------------------------------------
---7. consumer
+-- 8. consumer
 --------------------------------------------------------
 
 consumer = function(vector, printer, model)
     print('consume haha')
 
     local threads = require 'threads'
+    local sys = require 'sys'
     mutex = threads.Mutex() 
     torch.setdefaulttensortype('torch.FloatTensor')
     local epochs = model.config.epochs
     local batchSize = model.config.batchSize
     local epochSize = model.config.epochSize
     local croppedSize = model.config.croppedSize
+            
+    local batchData = torch.Tensor(batchSize, croppedSize[1], croppedSize[2], croppedSize[3]) 
+    local batchLabel = torch.Tensor(batchSize)
+    local product
+    
+    local lastTick = nil
+    local interval = nil
     for i =1, epochs do
        model:setTrainOptim(i)
 
         for j =1, epochSize do
-            local batchData = torch.Tensor(batchSize, croppedSize[1], croppedSize[2], croppedSize[3]) 
-            local batchLabel = torch.Tensor(batchSize)
-            printer('in batch', __threadid, j)
+            curTick = sys.clock() 
+            if(lastTick ~= nil) then
+                interval = curTick - lastTick
+            end
+            lastTick = curTick
+
+                       
+--        printer('in batch', __threadid, j)
             for k =1, batchSize do
-                local product = vector:popFront()
+                product = vector:popFront()
 --                printer('consumer', __threadid,  j, k)
                 batchData[k] = product[1]
                 batchLabel[k] = product[2]
 
             end
-            printer('out batch', __threadid, j)
+            printer('out batch', __threadid, j,  interval, 'tick')
 
             mutex:lock()
-            input = batchData:float()
-
-            output = model:trainBatch(input, batchLabel:float())
+            output = model:trainBatch(batchData, batchLabel)
             mutex:unlock()
 
 
@@ -193,35 +207,40 @@ consumer = function(vector, printer, model)
 
 end
 
---*************************************************--
-
+--***************************************************--
 
 
 --------------------------------------------------------
+-- 9. initalize environment for threads
 init_job = function()
     local lmdb = require 'lmdb'
     local path = require 'paths'
     local nn = require 'nn'
     path.dofile('LMDBProvider.lua')
-    path.dofile('model.lua')
+    path.dofile('createModel.lua')
     require 'nnlr'
     require 'nn' 
 
 end
-torch.setdefaulttensortype('torch.FloatTensor')
+--***************************************************--
+
+---------------------------------------------------------------
+-- 10. create variables shared by producer and consumer threads
+
 vector = tunnel.Vector(5*32)
 printer = tunnel.Printer()
 
 
-
+--create blocks
 producer_block = tunnel.Block(1, init_job)
 consumer_block = tunnel.Block(1, init_job)
 producer_block:add(vector, printer, TrainDB)
 consumer_block:add(vector, printer, TrainModel)
-
+-- run threads
 producer_block:run(producer)
 consumer_block:run(consumer)
 
+--**********************************************************--
 
 
 

@@ -116,3 +116,27 @@ function LMDBProvider:cacheSeq(pos, itemNum)
 end
 
 
+function LMDBProvider:shuffle()
+    print('SizeData')
+    local SizeData = self.Source:stat()['entries']
+
+    local dataIndices = torch.range(1, SizeData, 1):long()
+
+    print(SizeData)
+    if (self.config.phase == 'train') then -- and (config.accessWay == 'rand') then --shuffle batches from LMDB
+        dataIndices = dataIndices:index(1, torch.randperm(dataIndices:size(1)):long())
+    end
+    self.shuffleIndices = dataIndices
+    print('SizeData')
+    
+end
+
+
+function LMDBProvider:cacheRand(key_pos)
+    print('value')
+    local value = self.shuffleIndices[key_pos]
+    print(value)
+    local item = self.txn:get(value)
+    Data, Labels = self.ExtractFunction(data, key, self.config)
+    return Data, Labels
+end

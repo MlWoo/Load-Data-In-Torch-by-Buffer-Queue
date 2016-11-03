@@ -140,7 +140,7 @@ producer = function(vector, printer, DB)
         for j = 1, itemNum do
 --           Data, Label = DB:cacheSeq(j, itemNum)
 --            Data, Label = DB:cacheRand(j)
-             Data, Label = DB:cache(j, itemNum)
+            Data, Label = DB:cache(j, itemNum)
             vector:pushBack({Data, Label})
 --            printer('producer', __threadid, i, j)
         end
@@ -199,7 +199,7 @@ consumer = function(vector, printer, model)
             mutex:lock()
             totalerr = model:trainBatch(batchData, batchLabel)
             mutex:unlock()
-	    printer("epoch=",i,",iteration =",j ,", LR = ", model.optimState.learningRate,", loss = ", totalerr)
+	        printer("epoch=",i,",iteration =",j ,", LR = ", model.optimState.learningRate,", loss = ", totalerr)
 
         end
 --        model:clearState()

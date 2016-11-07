@@ -1,6 +1,7 @@
 local paths = require 'paths'
 local tunnel = require 'tunnel'
 local lmdb = require 'lmdb' 
+require 'nnlr'
 -------------------------------------------------------
 -- 0
 torch.setdefaulttensortype('torch.FloatTensor')

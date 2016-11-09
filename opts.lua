@@ -9,6 +9,7 @@
 local M = { }
 
 function M.parse(arg)
+    local model = 'alexnet'
     local cmd = torch.CmdLine()
 
     cmd:text()
@@ -24,21 +25,50 @@ function M.parse(arg)
     cmd:option('-dataType',             1,      'select the dataset format, 0 -- jpeg, 1 -- lmdb')
     cmd:option('-nClasses',             1000,   'number of classes in the dataset')
     cmd:option('-backend',              'nn',   'Options: cudnn | nn')
-    ------------- Training options --------------------
-    cmd:option('-phase',                'train','train or test')
-    cmd:option('-newRegime',            true,   'use nnlr or not')
-    cmd:option('-nEpochs',              250,    'Number of total epochs to run')
-    cmd:option('-epochSize',            40000,  'Number of batches per epoch')
-    cmd:option('-epochNumber',          1,      'Manual epoch number (useful on restarts)')
-    cmd:option('-batchSize',             32,    'mini-batch size (1 = pure stochastic)')
-    cmd:option('-prefetchSize',         4,      'prefetch batch size (2 or 3 is recommended)')
-    ---------- Optimization options ----------------------
-    cmd:option('-optimization',         'sgd',  'optimization method')
-    cmd:option('-learningRate',                   0.0,    'learning rate; if set, overrides default LR/WD recipe')
-    cmd:option('-momentum',             0.9,    'momentum')
-    cmd:option('-weightDecay',          2e-4,   'weight decay')
-    ---------- Model options ----------------------------------
-    cmd:option('-netType',              'zpGoogle_mkldnn', 'Options: alexnet | overfeat | alexnetowtbn | vgg | googlenet')
+
+
+    if model == 'googlenet' then
+       ------------- Training options --------------------
+       cmd:option('-model',                'googlenet','train or test')
+       cmd:option('-phase',                'train','train or test')
+       cmd:option('-newRegime',            true,   'use nnlr or not')
+       cmd:option('-nEpochs',              250,    'Number of total epochs to run')
+       cmd:option('-epochSize',            40000,  'Number of batches per epoch')
+       cmd:option('-epochNumber',          1,      'Manual epoch number (useful on restarts)')
+       cmd:option('-batchSize',             32,    'mini-batch size (1 = pure stochastic)')
+       cmd:option('-prefetchSize',         4,      'prefetch batch size (2 or 3 is recommended)')
+       ---------- Optimization options ----------------------
+       cmd:option('-optimization',         'sgd',  'optimization method')
+       cmd:option('-learningRate',                   0.0,    'learning rate; if set, overrides default LR/WD recipe')
+       cmd:option('-momentum',             0.9,    'momentum')
+       cmd:option('-weightDecay',          2e-4,   'weight decay')
+       ---------- Model options ----------------------------------
+       cmd:option('-netType',              'zpGoogle_mkldnn', 'Options: alexnet | overfeat | alexnetowtbn | vgg | googlenet')
+    elseif model == 'alexnet' then
+       cmd:option('-model',                'alexnet','train or test')
+       cmd:option('-phase',                'train','train or test')
+       cmd:option('-newRegime',            true,   'use nnlr or not')
+       cmd:option('-nEpochs',              90,    'Number of total epochs to run')
+       cmd:option('-epochSize',            5000,  'Number of batches per epoch')
+       cmd:option('-epochNumber',          1,      'Manual epoch number (useful on restarts)')
+       cmd:option('-batchSize',            256,    'mini-batch size (1 = pure stochastic)')
+       cmd:option('-prefetchSize',         4,      'prefetch batch size (2 or 3 is recommended)')
+       ---------- Optimization options ----------------------
+       cmd:option('-optimization',         'sgd',  'optimization method')
+       cmd:option('-learningRate',                   0.0,    'learning rate; if set, overrides default LR/WD recipe')
+       cmd:option('-momentum',             0.9,    'momentum')
+       cmd:option('-weightDecay',          5e-4,   'weight decay')
+       ---------- Model options ----------------------------------
+       cmd:option('-netType',              'alexnet_mkldnn', 'Options: alexnet | overfeat | alexnetowtbn | vgg | googlenet')
+    end
+
+
+
+
+
+
+
+
 
     cmd:option('-retrain',              'none', 'provide path to model to retrain with')
     cmd:option('-optimState',           'none', 'provide path to an optimState to reload from')

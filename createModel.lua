@@ -79,7 +79,9 @@ function net_optm:paramsForEpoch(epoch)
      if self.config.learningRate ~= 0.0 then -- if manually specified
         return { }
      end
-    local regimes = {
+     local regimes
+    if self.config.model == 'googlenet' then
+    regimes = {
         -- start, end,    LR,   WD,
         {  1,      8,    1e-2,     2e-4  },
         {  9,     16,    0.0096,   2e-4, },
@@ -114,6 +116,16 @@ function net_optm:paramsForEpoch(epoch)
         { 241,    248,   0.002938576,   2e-4 },
         { 249,    250,   0.002821033,   2e-4 },
     }
+    elseif self.config.model == 'alexnet' then
+    regimes = {
+        -- start, end,    LR,   WD,
+        {  1,     20,   1e-2,   5e-4, },
+        { 21,     40,   1e-3,   5e-4  },
+        { 41,     60,   1e-4,   5e-4 },
+        { 61,     80,   1e-5,   5e-4 },
+        { 80,     90,   1e-6,   5e-4 },
+    }
+    end
 
     for _, row in ipairs(regimes) do
         if epoch >= row[1] and epoch <= row[2] then

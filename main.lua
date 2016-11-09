@@ -21,8 +21,10 @@ local config = paths.dofile('config.lua')
 -----------------------
 
 local opts = paths.dofile('opts.lua')
-
 cmd = opts.parse(arg)
+if cmd.model == 'alexnet' then
+   config.croppedSize = {3,227,227}
+end
 
 --****************************************************--
 
@@ -83,6 +85,7 @@ dataConfig = {
 -----------------------------------------------------
 
 modelConfig = {
+    model           = cmd.model,
     phase           = cmd.phase,
     netType         = cmd.netType,
     optimization    = cmd.optimization,
@@ -122,7 +125,7 @@ TrainDB = LMDBProvider(dataConfig)
 -----------------------------------------------------
 paths.dofile('createModel.lua')
 TrainModel = netOptim(modelConfig)
-
+print("create model done")
 --****************************************************--
 
 --------------------------------------------------------

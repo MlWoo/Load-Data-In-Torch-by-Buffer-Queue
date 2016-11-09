@@ -1,4 +1,6 @@
+require 'nn'
 require 'nnlr'
+
 
 function createModel(nGPU)
    -- from https://code.google.com/p/cuda-convnet2/source/browse/layers/layers-imagenet-1gpu.cfg
@@ -61,7 +63,7 @@ function createModel(nGPU)
    fc7:weightDecay('bias',    0)
    fc7.weight:normal(0, 0.005)
    fc7.bias:fill(0.1)
-   local fc8 = nn.Linear(4096, nClasses)
+   local fc8 = nn.Linear(4096, 1000)
    fc8:learningRate('weight', 1)
    fc8:weightDecay('weight',  1)
    fc8:learningRate('bias',   2)

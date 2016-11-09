@@ -231,7 +231,7 @@ end
 ---------------------------------------------------------------
 -- 10. create variables shared by producer and consumer threads
 
-vector = tunnel.Vector(5*32)
+vector = tunnel.Vector(dataConfig.prefetchSize * dataConfig.batchSize)
 printer = tunnel.Printer()
 
 

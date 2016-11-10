@@ -10,12 +10,15 @@ It's well known that computation in deep network costs much more time than readi
 2. LMDB-torch(https://github.com/eladhoffer/lmdb.torch)
 3. tunnel(https://github.com/zhangxiangxiao/tunnel)
 
+#How to create LMDB
+using the CreateLMDBs.lua(https://github.com/eladhoffer/ImageNet-Training). In order to load data more efficiently, it's better to turn off the compressed flag in Config.lua. You'd better to replace "float" to "byte" in line 28 of CreateLMDBs.lua.
+
 #Explanation
 config.lua and opts.lua are used to configure parameters of your model or data.
 
-LMDBProvider.lua provides interfaces to access LMDB and wrap the data and method into a torch class.
+LMDBProvider.lua provides interfaces to access LMDB and wraps the data and method into a torch class.
 
-model.lua provides interfaces to create the model which includes network and optimizer, and wrap the data and method into a torch class.
+model.lua provides interfaces to create the model which includes network and optimizer, and wraps the data and method into a torch class.
 
 main.lua has a clear procedure to train network. Producer and consumer threads are coroutine by judging the vector (buffer queue) is full or empty.
 

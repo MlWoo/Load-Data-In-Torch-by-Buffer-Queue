@@ -1,7 +1,13 @@
 require 'lmdb'
 local LMDBProvider = torch.class('LMDBProvider')
 
-function ExtractFromLMDBTrain(data, key, config)
+local tt1 = 0
+local tt2 = 0
+local tt3 = 0
+local tt4 = 0
+local count = 0
+
+function ExtractFromLMDBTrain(data, key, config, i , batchData, batchLabel)
     require 'image'
     local reSample = function(sampledImg)
         local sizeImg = sampledImg:size()
@@ -20,7 +26,7 @@ function ExtractFromLMDBTrain(data, key, config)
         return applyRot
     end
     local wnid = string.split(data.Name,'_')[1]
-    local class = config.ImageNetClasses.Wnid2ClassNum[wnid]
+    batchLabel[i] = config.ImageNetClasses.Wnid2ClassNum[wnid]
 
     local img = data.Data
     if config.Compressed then
@@ -42,9 +48,10 @@ function ExtractFromLMDBTrain(data, key, config)
     if hflip then
         img = image.hflip(img)
     end
+    batchData[i] = img
 
 --    print("ExtractFromLMDBTrain end")
-    return img, class
+   -- return img, class
 end
 
 
@@ -104,15 +111,38 @@ function LMDBProvider:close()
 
 end
 
-function LMDBProvider:cacheSeq(pos, itemNum)
-    local key, data = self.cursor:get()
-    local Data, Labels = self.ExtractFunction(data, key, self.config)
-    if (pos < itemNum) then
-       self.cursor:next()
-    elseif(pos == itemNum) then
-       self.cursor:first()
+function LMDBProvider:cacheSeqBatch(pos, itemNum, index, batchData, batchLabel)
+--    print('cacheSeq')
+
+    local config  = self.config
+--    local batchData = torch.randn(config.batchSize, config.croppedSize[1], config.croppedSize[2], config.croppedSize[3])
+--    local batchLabel = torch.randperm(config.batchSize)
+    
+    local startIndex = index*config.batchSize
+    for i = 1, config.batchSize do
+--        local t1 = sys.clock()
+        local key, data = self.cursor:get()
+--        local t2 = sys.clock()
+        self.ExtractFunction(data, key, config, startIndex+i, batchData, batchLabel)
+--        local t3 = sys.clock()
+        if (pos < itemNum) then
+            self.cursor:next()
+        elseif(pos == itemNum) then
+            self.cursor:first()
+        end
+
+--        local t4 = sys.clock()
+--        tt1 = tt1 + (t2-t1)
+--        tt2 = tt2 + (t3-t2)
+--        tt3 = tt3 + (t4-t3)
+
+--        count = count + 1
     end
-    return Data, Labels
+--    if(count%100 == 0) then
+--        print('cache seq  getdata ' .. tt1/count .. '    extractimage ' .. tt2/count .. '   movestep ' .. tt3/count)
+--    end
+   --
+--    print('/cacheSeq')
 end
 
 function Keys(tensor)

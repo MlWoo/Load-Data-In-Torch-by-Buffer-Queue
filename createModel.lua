@@ -189,7 +189,6 @@ function net_optm:trainBatch(inputsCPU, labelsCPU)
 --use every batch    
 --    inputs:resize(inputsCPU:size()):copy(inputsCPU)
 --    labels:resize(labelsCPU:size()):copy(labelsCPU)
-    --print('----------------------------------------------------------')
 
     local inputs = inputsCPU
     local labels = labelsCPU
@@ -225,6 +224,7 @@ function net_optm:trainBatch(inputsCPU, labelsCPU)
             end
             gradOutputs = allGradOutputs
         end
+
         model:backward(inputs, gradOutputs)
         return totalerr, gradParameters
     end

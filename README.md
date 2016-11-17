@@ -11,7 +11,7 @@ It's well known that computation in deep network costs much more time than readi
 3. tunnel(https://github.com/zhangxiangxiao/tunnel)
 
 #How to create LMDB
-using the CreateLMDBs.lua(https://github.com/eladhoffer/ImageNet-Training). In order to load data more efficiently, it's recommended to turn off the compressed flag in Config.lua. You'd better replace "float" with "byte" in line 28 of CreateLMDBs.lua.
+using the CreateLMDBs.lua(https://github.com/eladhoffer/ImageNet-Training). ~~In order to load data more efficiently, it's recommended to turn off the compressed flag in Config.lua. You'd better replace "float" with "byte" in line 28 of CreateLMDBs.lua.~~
 
 #Explanation
 config.lua and opts.lua are used to configure parameters of your model or data.

@@ -171,7 +171,7 @@ producer = function(DB, DataTensor, LabelTensor, BQInfo, coroutineInfo)
                 print('Fatal Error, storeRunner has led ahead fetchRunner a whole circle')
  		mutex:unlock()
             elseif(headDis == DB.config.prefetchSize) then
-                print('Warning, waiting for fetch data')
+                --print('Warning, waiting for fetch data')
 		conditionF:wait(mutex)
 	        t1 = sys.clock()
                 DB:cacheSeqBatch(j, epochsize, BQInfo[1]-1, DataTensor, LabelTensor)
@@ -230,7 +230,6 @@ consumer = function(model, DataTensor, LabelTensor, BQInfo, coroutineInfo)
     local epochs = model.config.epochs
     local batchSize = model.config.batchSize
     local epochSize = model.config.epochSize
-    local croppedSize = model.config.croppedSize
             
     local batchData  -- = torch.Tensor(batchSize, croppedSize[1], croppedSize[2], croppedSize[3]) 
     local batchLabel -- = torch.Tensor(batchSize)
@@ -265,7 +264,7 @@ consumer = function(model, DataTensor, LabelTensor, BQInfo, coroutineInfo)
                 print('Fatal Error, storeRunner has fell behind fetchRunner')
                 mutex:unlock()
             elseif(headDis == 0) then
-                print('Warning, waiting for store data')
+                --print('Warning, waiting for store data')
                 conditionS:wait(mutex)
                 local index = BQInfo[2]-1
                 batchData = DataTensor[{{index*batchSize+1, (index+1)*batchSize}, {}, {}, {}}]
@@ -286,7 +285,6 @@ consumer = function(model, DataTensor, LabelTensor, BQInfo, coroutineInfo)
  
              else
                 local index = BQInfo[2]-1
-                --print('index' , index)
          
                 batchData = DataTensor[{{index*batchSize+1, (index+1)*batchSize}, {}, {}, {}}]
                 batchLabel = LabelTensor[{{index*batchSize+1, (index+1)*batchSize}}]

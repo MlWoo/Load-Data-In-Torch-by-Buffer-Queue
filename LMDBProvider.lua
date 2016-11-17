@@ -7,8 +7,9 @@ local tt3 = 0
 local tt4 = 0
 local count = 0
 
-function ExtractFromLMDBTrain(data, key, config, i , batchData, batchLabel)
-    require 'image'
+--[[
+--
+
     local reSample = function(sampledImg)
         local sizeImg = sampledImg:size()
         local szx = torch.random(math.ceil(sizeImg[3]/4))
@@ -25,13 +26,8 @@ function ExtractFromLMDBTrain(data, key, config, i , batchData, batchLabel)
         end
         return applyRot
     end
-    local wnid = string.split(data.Name,'_')[1]
-    batchLabel[i] = config.ImageNetClasses.Wnid2ClassNum[wnid]
 
-    local img = data.Data
-    if config.Compressed then
-        img = image.decompressJPG(img,3,'byte')
-    end
+
     if math.min(img:size(2), img:size(3)) ~= config.ImageMinSide then
         img = image.scale(img, '^' .. config.ImageMinSide)
     end
@@ -40,7 +36,21 @@ function ExtractFromLMDBTrain(data, key, config, i , batchData, batchLabel)
         img = reSample(img)
     elseif config.Augment == 2 then
         img = reSample(img)
+
     end
+--]]--
+function ExtractFromLMDBTrain(data, key, config, i , batchData, batchLabel)
+    require 'image'
+
+    local wnid = string.split(data.Name,'_')[1]
+    batchLabel[i] = config.ImageNetClasses.Wnid2ClassNum[wnid]
+
+    local img = data.Data
+    if config.Compressed then
+        img = image.decompressJPG(img,3,'byte')
+    end
+
+
     local startX = math.random(img:size(3)-config.croppedSize[3]+1)
     local startY = math.random(img:size(2)-config.croppedSize[2]+1)
     img = img:narrow(3,startX,config.croppedSize[3]):narrow(2,startY,config.croppedSize[2])
@@ -54,6 +64,41 @@ function ExtractFromLMDBTrain(data, key, config, i , batchData, batchLabel)
    -- return img, class
 end
 
+function ExtractFromLMDBTrainBatch(data, key, config, startIndex, batchData, batchLabel)
+    require 'image'
+    
+--    print("ExtractFromLMDBTrain 1")
+    for i = 1, config.batchSize do
+        local wnid = string.split(data[i].Name,'_')[1]
+        batchLabel[i+startIndex] = config.ImageNetClasses.Wnid2ClassNum[wnid]
+    end
+--    print("ExtractFromLMDBTrain 2")
+    local imageBatch = {}
+    for i = 1, config.batchSize do
+        local img = data[i].Data
+        if config.Compressed then
+            imageBatch[i] = image.decompressJPG(img,3,'byte')
+        end
+    end
+
+--    print("ExtractFromLMDBTrain 3")
+    
+    for i = 1, config.batchSize do
+        local startX = math.random(imageBatch[i]:size(3)-config.croppedSize[3]+1)
+        local startY = math.random(imageBatch[i]:size(2)-config.croppedSize[2]+1)
+        imageBatch[i] = imageBatch[i]:narrow(3,startX,config.croppedSize[3]):narrow(2,startY,config.croppedSize[2])
+        local hflip = torch.random(2)==1
+        if hflip then
+            imageBatch[i] = image.hflip(imageBatch[i])
+        end
+    end
+    for i = 1, config.batchSize do
+        batchData[i+startIndex] = imageBatch[i]
+    end
+
+--    print("ExtractFromLMDBTrain end")
+   -- return img, class
+end
 
 function ExtractFromLMDBTest(data, key, config)
     require 'image'
@@ -113,31 +158,44 @@ end
 
 function LMDBProvider:cacheSeqBatch(pos, itemNum, index, batchData, batchLabel)
 --    print('cacheSeq')
-
+--print(type(batchData))
     local config  = self.config
 --    local batchData = torch.randn(config.batchSize, config.croppedSize[1], config.croppedSize[2], config.croppedSize[3])
 --    local batchLabel = torch.randperm(config.batchSize)
-    
+    local key = nil
+    local data = {}   
     local startIndex = index*config.batchSize
+--    local t1 = sys.clock()
     for i = 1, config.batchSize do
---        local t1 = sys.clock()
-        local key, data = self.cursor:get()
---        local t2 = sys.clock()
-        self.ExtractFunction(data, key, config, startIndex+i, batchData, batchLabel)
---        local t3 = sys.clock()
+    --    local t1 = sys.clock()
+         key, data[i] = self.cursor:get()
+    --    local t2 = sys.clock()
+
+    --    local t3 = sys.clock()
         if (pos < itemNum) then
             self.cursor:next()
         elseif(pos == itemNum) then
             self.cursor:first()
         end
 
---        local t4 = sys.clock()
---        tt1 = tt1 + (t2-t1)
---        tt2 = tt2 + (t3-t2)
---        tt3 = tt3 + (t4-t3)
+      --[[  local t4 = sys.clock()
+        tt1 = tt1 + (t2-t1)
+        tt2 = tt2 + (t3-t2)
+        tt3 = tt3 + (t4-t3)
 
---        count = count + 1
+        count = count + 1]]--
     end
+   -- self.ExtractFunction(data, key, config, startIndex, batchData, batchLabel)
+
+--    local t2 = sys.clock()
+--    tt1 = tt1 + (t2-t1)
+   
+    for i = 1, config.batchSize do
+        self.ExtractFunction(data[i], key, config, startIndex+i, batchData, batchLabel)
+    end
+--    local t3 = sys.clock()
+--    tt2 = tt2 + (t3-t2)
+--    print('cache seq  getdata ' .. tt1/config.batchSize .. '    extractimage ' .. tt2/config.batchSize ) --.. '   movestep ' .. tt3/count)
 --    if(count%100 == 0) then
 --        print('cache seq  getdata ' .. tt1/count .. '    extractimage ' .. tt2/count .. '   movestep ' .. tt3/count)
 --    end

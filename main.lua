@@ -144,7 +144,7 @@ producer = function(DB, DataTensor, LabelTensor, BQInfo, coroutineInfo)
     local conditionF = threads.Condition(coroutineInfo[2])
 
 
-    torch.setnumthreads(2)
+
     torch.setdefaulttensortype('torch.FloatTensor')
 
     local epochs = DB.config.epochs
@@ -174,6 +174,7 @@ producer = function(DB, DataTensor, LabelTensor, BQInfo, coroutineInfo)
                 --print('Warning, waiting for fetch data')
 		conditionF:wait(mutex)
 	        t1 = sys.clock()
+                torch.setnumthreads(1)
                 DB:cacheSeqBatch(j, epochsize, BQInfo[1]-1, DataTensor, LabelTensor)
                 t3 = sys.clock()
                 if(BQInfo[1] == DB.config.prefetchSize) then
@@ -188,6 +189,7 @@ producer = function(DB, DataTensor, LabelTensor, BQInfo, coroutineInfo)
                 
             else
 	        t1 = sys.clock()
+                torch.setnumthreads(1)
 	        DB:cacheSeqBatch(j, epochsize, BQInfo[1]-1, DataTensor, LabelTensor)
                 t3 = sys.clock()
                 if(BQInfo[1] == DB.config.prefetchSize) then
@@ -272,8 +274,9 @@ consumer = function(model, DataTensor, LabelTensor, BQInfo, coroutineInfo)
                 
 
                 t2 = sys.clock()
+                torch.setnumthreads(43)
                 totalerr = model:trainBatch(batchData, batchLabel)
-        
+                torch.setnumthreads(1)
                 if(BQInfo[2] == model.config.prefetchSize) then
                     BQInfo[2] = 1
                     BQInfo[3] = 0
@@ -289,7 +292,9 @@ consumer = function(model, DataTensor, LabelTensor, BQInfo, coroutineInfo)
                 batchData = DataTensor[{{index*batchSize+1, (index+1)*batchSize}, {}, {}, {}}]
                 batchLabel = LabelTensor[{{index*batchSize+1, (index+1)*batchSize}}]
 	        t2 = sys.clock()
+                torch.setnumthreads(43)
                 totalerr = model:trainBatch(batchData, batchLabel)
+                torch.setnumthreads(1)
                 if(BQInfo[2] == model.config.prefetchSize) then
                     BQInfo[2] = 1
                     BQInfo[3] = 0

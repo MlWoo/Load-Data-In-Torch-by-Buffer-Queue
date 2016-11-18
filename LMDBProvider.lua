@@ -50,7 +50,6 @@ function ExtractFromLMDBTrain(data, key, config, i , batchData, batchLabel)
         img = image.decompressJPG(img,3,'byte')
     end
 
-
     local startX = math.random(img:size(3)-config.croppedSize[3]+1)
     local startY = math.random(img:size(2)-config.croppedSize[2]+1)
     img = img:narrow(3,startX,config.croppedSize[3]):narrow(2,startY,config.croppedSize[2])
@@ -58,6 +57,7 @@ function ExtractFromLMDBTrain(data, key, config, i , batchData, batchLabel)
     if hflip then
         img = image.hflip(img)
     end
+    torch.setnumthreads(2)
     batchData[i] = img
 
 --    print("ExtractFromLMDBTrain end")
@@ -67,6 +67,8 @@ end
 function ExtractFromLMDBTrainBatch(data, key, config, startIndex, batchData, batchLabel)
     require 'image'
     
+--    print('------------------->')
+--    print( torch.getnumthreads())
 --    print("ExtractFromLMDBTrain 1")
     for i = 1, config.batchSize do
         local wnid = string.split(data[i].Name,'_')[1]
@@ -83,15 +85,18 @@ function ExtractFromLMDBTrainBatch(data, key, config, startIndex, batchData, bat
 
 --    print("ExtractFromLMDBTrain 3")
     
+    torch.setnumthreads(1)
     for i = 1, config.batchSize do
         local startX = math.random(imageBatch[i]:size(3)-config.croppedSize[3]+1)
         local startY = math.random(imageBatch[i]:size(2)-config.croppedSize[2]+1)
         imageBatch[i] = imageBatch[i]:narrow(3,startX,config.croppedSize[3]):narrow(2,startY,config.croppedSize[2])
-        local hflip = torch.random(2)==1
+        local hflip = torch.random(1)==1
         if hflip then
             imageBatch[i] = image.hflip(imageBatch[i])
         end
     end
+
+    torch.setnumthreads(1)
     for i = 1, config.batchSize do
         batchData[i+startIndex] = imageBatch[i]
     end
@@ -132,7 +137,7 @@ function LMDBProvider:__init(config)
     self.Source = lmdb.env({Path = dataWholePath, RDONLY = true})
     
     if (config.phase == 'train') then
-        self.ExtractFunction = ExtractFromLMDBTrain
+        self.ExtractFunction = ExtractFromLMDBTrainBatch
     else
         self.ExtractFunction = ExtractFromLMDBTest
     end
@@ -166,6 +171,7 @@ function LMDBProvider:cacheSeqBatch(pos, itemNum, index, batchData, batchLabel)
     local data = {}   
     local startIndex = index*config.batchSize
 --    local t1 = sys.clock()
+
     for i = 1, config.batchSize do
     --    local t1 = sys.clock()
          key, data[i] = self.cursor:get()
@@ -185,14 +191,16 @@ function LMDBProvider:cacheSeqBatch(pos, itemNum, index, batchData, batchLabel)
 
         count = count + 1]]--
     end
-   -- self.ExtractFunction(data, key, config, startIndex, batchData, batchLabel)
+    --torch.setnumthreads(2)
+    self.ExtractFunction(data, key, config, startIndex, batchData, batchLabel)
 
 --    local t2 = sys.clock()
 --    tt1 = tt1 + (t2-t1)
-   
+--[[
+    torch.setnumthreads(2)
     for i = 1, config.batchSize do
         self.ExtractFunction(data[i], key, config, startIndex+i, batchData, batchLabel)
-    end
+    end]]--
 --    local t3 = sys.clock()
 --    tt2 = tt2 + (t3-t2)
 --    print('cache seq  getdata ' .. tt1/config.batchSize .. '    extractimage ' .. tt2/config.batchSize ) --.. '   movestep ' .. tt3/count)

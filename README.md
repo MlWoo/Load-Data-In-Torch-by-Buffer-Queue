@@ -11,14 +11,17 @@ It's well known that computation in deep network costs much more time than readi
 3. tunnel(https://github.com/zhangxiangxiao/tunnel)
 
 #How to create LMDB
-using the CreateLMDBs.lua(https://github.com/eladhoffer/ImageNet-Training). In order to load data more efficiently, it's recommended to turn off the compressed flag in Config.lua. You'd better replace "float" with "byte" in line 28 of CreateLMDBs.lua.
+Using the CreateLMDBs.lua(https://github.com/eladhoffer/ImageNet-Training). ~~In order to load data more efficiently, it's recommended to turn off the compressed flag in Config.lua. You'd better replace "float" with "byte" in line 28 of CreateLMDBs.lua.~~
+
+#How to allocate openmp threads to 2 torch Threads(more similar to Process)
+There are 44 cores in my machine, so there are 44 available threads to allocate to 2 torch threads. The amount of threads using by DNN training procedure should be even and less than the total available threads(44 on my machine). The more threads you allocate to it, the better performance the machine will achieve. So 42 threads is good choice for DNN training part, the remained threads (here is 2 on my machine) to read dataset  
 
 #Explanation
 config.lua and opts.lua are used to configure parameters of your model or data.
 
-LMDBProvider.lua provides interfaces to access LMDB and wraps the data and method into a torch class.
+LMDBProvider.lua provides interfaces to access LMDB and wrapps the data and method into a torch class.
 
-model.lua provides interfaces to create the model which includes network and optimizer, and wraps the data and method into a torch class.
+model.lua provides interfaces to create the model which includes network and optimizer, and wrapps the data and method into a torch class.
 
 main.lua has a clear procedure to train network. Producer and consumer threads are coroutine by judging the vector (buffer queue) is full or empty.
 

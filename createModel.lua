@@ -198,10 +198,10 @@ function net_optm:trainBatch(inputsCPU, labelsCPU)
     criterion = self.criterion
     parameters = self.parameters
     gradParameters = self.gradParameters
-    
+
 
     feval = function(x)
-        torch.setnumthreads(42)
+        torch.setnumthreads(42) 
         model:zeroGradParameters()
         outputs = model:forward(inputs)
         local model_outputs = outputs:sub(1, -1, 1, nClasses)

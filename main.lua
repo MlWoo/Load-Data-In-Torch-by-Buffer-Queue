@@ -156,7 +156,7 @@ producer = function(DB, DataTensor, LabelTensor, BQInfo, coroutineInfo)
         for j = 1, epochsize do
 
 	    local t1 = sys.clock()
-	    local t3 = nil
+--	    local t3 = nil
             -- Buffer queue should not be modified if we havn't make sure this operation is secure
             mutex:lock()
 --            print(BQInfo)
@@ -174,9 +174,9 @@ producer = function(DB, DataTensor, LabelTensor, BQInfo, coroutineInfo)
                 --print('Warning, waiting for fetch data')
 		conditionF:wait(mutex)
 	        t1 = sys.clock()
-                torch.setnumthreads(1)
+                torch.setnumthreads(2)
                 DB:cacheSeqBatch(j, epochsize, BQInfo[1]-1, DataTensor, LabelTensor)
-                t3 = sys.clock()
+--                t3 = sys.clock()
                 if(BQInfo[1] == DB.config.prefetchSize) then
                     BQInfo[1] = 1
                     BQInfo[3] = 1
@@ -189,9 +189,9 @@ producer = function(DB, DataTensor, LabelTensor, BQInfo, coroutineInfo)
                 
             else
 	        t1 = sys.clock()
-                torch.setnumthreads(1)
+                torch.setnumthreads(2)
 	        DB:cacheSeqBatch(j, epochsize, BQInfo[1]-1, DataTensor, LabelTensor)
-                t3 = sys.clock()
+--                t3 = sys.clock()
                 if(BQInfo[1] == DB.config.prefetchSize) then
                     BQInfo[1] = 1
                     BQInfo[3] = 1
@@ -203,7 +203,7 @@ producer = function(DB, DataTensor, LabelTensor, BQInfo, coroutineInfo)
                 conditionS:signal()
 	    end
             local t2 = sys.clock()
-	    print('cacheData', t2-t1, 'pure read', t3-t1)
+	    print('cacheData', t2-t1) --, 'pure read', t3-t1)
 --            printer('producer', __threadid, i, j)
         end
     end
@@ -274,7 +274,7 @@ consumer = function(model, DataTensor, LabelTensor, BQInfo, coroutineInfo)
                 
 
                 t2 = sys.clock()
-                torch.setnumthreads(43)
+                torch.setnumthreads(42)
                 totalerr = model:trainBatch(batchData, batchLabel)
                 torch.setnumthreads(1)
                 if(BQInfo[2] == model.config.prefetchSize) then
@@ -292,7 +292,7 @@ consumer = function(model, DataTensor, LabelTensor, BQInfo, coroutineInfo)
                 batchData = DataTensor[{{index*batchSize+1, (index+1)*batchSize}, {}, {}, {}}]
                 batchLabel = LabelTensor[{{index*batchSize+1, (index+1)*batchSize}}]
 	        t2 = sys.clock()
-                torch.setnumthreads(43)
+                torch.setnumthreads(42)
                 totalerr = model:trainBatch(batchData, batchLabel)
                 torch.setnumthreads(1)
                 if(BQInfo[2] == model.config.prefetchSize) then

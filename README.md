@@ -5,7 +5,7 @@ Reading data and training network are two main parts of deep learning procedures
 
 It's well known that computation in deep network costs much more time than reading data from raw data or database. And the former will use data which is provided by the later. So producer-consumer is an appropriate manner to arrange the two parts.
 
-#Requiments
+#Requirements
 1. nnlr(https://github.com/gpleiss/nnlr)
 2. LMDB-torch(https://github.com/eladhoffer/lmdb.torch)
 3. tunnel(https://github.com/zhangxiangxiao/tunnel)

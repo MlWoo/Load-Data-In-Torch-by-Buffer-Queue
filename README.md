@@ -1,7 +1,8 @@
 # Load-Data-In-Torch-by-Buffer-Queue
-Using buffer queue to load data  more efficiently torch
+The project aims at loading data more efficiently by using buffer queue in Torch DL framework. Although LMDB is used as dataset source, the tricks which boost DNN training in the project are pratically effective when you prefer to raw images. Please swith to the ShareBufferBatch branch to get more tips.
 
 Reading data and training network are two main parts of deep learning procedures. It's reasonable to allocate one thread to fetch data because reading data is light-weight work and accessing records orderly is necesary . If the two parts are executed serially, it means computing resources waste because reading data occupies only one thread but all other threads are idle when it runs. 
+osing buffer queue to load data  more efficiently torch
 
 It's well known that computation in deep network costs much more time than reading data from raw data or database. And the former will use data which is provided by the later. So producer-consumer is an appropriate manner to arrange the two parts.
 

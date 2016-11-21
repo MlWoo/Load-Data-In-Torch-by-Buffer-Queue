@@ -246,7 +246,8 @@ consumer = function(model, DataTensor, LabelTensor, BQInfo, coroutineInfo)
     mutex:lock()
     torch.setnumthreads(42)
     for i =1, epochs do
-       model:setTrainOptim(i)
+        model:setTrainOptim(i)
+	model.network:training()
         for j =1, epochSize do
 
             if(j%100 == 0) then

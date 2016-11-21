@@ -9,7 +9,7 @@
 local M = { }
 
 function M.parse(arg)
-    local model = 'alexnet'
+    local model = 'googlenet'
     local cmd = torch.CmdLine()
 
     cmd:text()

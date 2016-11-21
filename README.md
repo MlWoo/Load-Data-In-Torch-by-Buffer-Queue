@@ -11,15 +11,15 @@ It's well known that computation in deep network costs much more time than readi
 3. tunnel(https://github.com/zhangxiangxiao/tunnel)
 
 #How to create LMDB
-Using the CreateLMDBs.lua(https://github.com/eladhoffer/ImageNet-Training). ~~In order to load data more efficiently, it's recommended to turn off the compressed flag in Config.lua. You'd better replace "float" with "byte" in line 28 of CreateLMDBs.lua.~~
+Using the CreateLMDBs.lua(https://github.com/eladhoffer/ImageNet-Training).
 
 #How to allocate openmp threads to 2 torch Threads(more similar to Process)
 There are 44 cores on my machine, so there are 44 available threads to allocate to 2 torch threads. The amount of threads using by DNN training procedure should be even and less than the total available threads(44 on my machine). The more threads you allocate to it, the better performance the machine will achieve. So 42 threads is a good choice for DNN training part, the remained threads (here is 2 on my machine) to read dataset. The experience above can be viewed as a recommendation. You'd better tune your application to get the best performance on your machine.
 
-There's an another trick to accelerate your application especially when the amount of batch is small such as googlenet. Reading a batch of images is much faster than training DNN using the images. The former costs about 50ms, but the later costs about 300ms on my machine when traing googlenet model. So reading thread is always wait for computing thread to fetch data in the buffer when co-work of them is stable. So it's wonderful to allocate all cores to computing threads when reading thread is suspended. The larger the buffer queue get, the longer time computing thread which utilizes all cores occupy.  
+There's an another trick to accelerate your application especially when the amount of batch is small such as googlenet. Reading a batch of images is much faster than training DNN using the images. The former costs about 50ms, but the later costs about 300ms on my machine when training googlenet model. So reading thread is always waiting for computing thread to fetch data in the buffer when co-work of them is stable. So it's wonderful to allocate all cores to computing threads when reading thread is suspended. The larger the buffer queue gets, the longer time computing thread which utilizes all cores occupies.  
 
 1. Allocate shareing buffer as large as possible according to your RAM capacity. 
-2. When the buffer is filler with unused data, reading thread will be suspended, allocate all cores to computing threads.
+2. When the buffer is filled with unused data, reading thread will be suspended, allocate all cores to computing threads.
 3. When fresh data is nearly empty, Resume the reading thread, and reset 42 sores to computing thread to avoid undesired thread-race.
 
 

@@ -23,7 +23,7 @@ There's an another trick to accelerate your application especially when the amou
 3. When fresh data is nearly empty, Resume the reading thread, and reset 42 sores to computing thread to avoid undesired thread-race.
 
 
-#Explanation
+#Explaination
 config.lua and opts.lua are used to configure parameters of your model or data.
 
 LMDBProvider.lua provides interfaces to access LMDB and wrapps the data and method into a torch class.

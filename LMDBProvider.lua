@@ -91,7 +91,7 @@ function ExtractFromLMDBTrainBatch(data, key, config, startIndex, batchData, bat
         local startX = math.random(imageBatch[i]:size(3)-config.croppedSize[3]+1)
         local startY = math.random(imageBatch[i]:size(2)-config.croppedSize[2]+1)
         imageBatch[i] = imageBatch[i]:narrow(3,startX,config.croppedSize[3]):narrow(2,startY,config.croppedSize[2])
-        local hflip = torch.random(1)==1
+        local hflip = torch.random(2)==1
         if hflip then
             imageBatch[i] = image.hflip(imageBatch[i])
         end

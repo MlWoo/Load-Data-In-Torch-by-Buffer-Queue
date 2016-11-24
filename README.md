@@ -14,13 +14,13 @@ It's well known that computation in deep network costs much more time than readi
 Using the CreateLMDBs.lua(https://github.com/eladhoffer/ImageNet-Training).
 
 #How to allocate openmp threads to 2 torch Threads(more similar to Process)
-There are 44 cores on my machine, so there are 44 available threads to be allocated to 2 torch threads. The amount of threads using by DNN training procedure should be even and less than the total available threads(44 on my machine). The more threads you allocate to it, the better performance the machine will achieve. So 42 threads is a good choice for DNN training part, the remained threads (here is 2 on my machine) to read dataset. The experience above can be viewed as a recommendation. You'd better tune your application to get the best performance on your machine.
+The term of thread in Torch is more similar a Process in OS. There are 44 cores on my machine to be allocated to 2 torch threads. The amount of cores using by DNN training procedure should be even and less than the total available cores(44 on my machine). The more cores you allocate to it, the better performance the machine will achieve. So 42 threads(cores) is a good choice for DNN training part, the remained threads (here is 2 cores left on my machine) to read dataset. The experience above is a recommendation. You'd better tune your application to get the best performance on your machine.
 
-There's an another trick to accelerate your application especially when the amount of batch is small such as googlenet. Reading a batch of images is much faster than training DNN using the images. The former costs about 50ms, but the later costs about 300ms on my machine when training googlenet model. So reading thread is always waiting for computing thread to fetch data in the buffer when co-work of them is stable. So it's wonderful to allocate all cores to computing threads when reading thread is suspended. The larger the buffer queue gets, the longer time computing thread which utilizes all cores occupies.  
+There's an another trick to accelerate your application especially when the size of batch is small such as googlenet. Reading a batch of images is much faster than training DNN using those. The former costs about 50ms, but the later costs about 300ms on my machine when training googlenet. So reading thread is always waiting for computing thread to fetch data in the buffer when co-work of them is stable. It's wonderful to allocate all cores to computing thread when reading thread is suspended. The larger the buffer queue gets, the longer time computing thread which utilizes all cores occupies.  
 
 1. Allocate shareing buffer as large as possible according to your RAM capacity. 
 2. When the buffer is filled with unused data, reading thread will be suspended, allocate all cores to computing threads.
-3. When fresh data is nearly empty, Resume the reading thread, and reset 42 sores to computing thread to avoid undesired thread-race.
+3. When fresh data is nearly empty, resume reading thread, and reset 42 cores to computing thread to avoid undesired thread-race.
 
 
 #Explaination
@@ -30,7 +30,7 @@ LMDBProvider.lua provides interfaces to access LMDB and wrapps the data and meth
 
 model.lua provides interfaces to create the model which includes network and optimizer, and wrapps the data and method into a torch class.
 
-main.lua has a clear procedure to train network. Producer and consumer threads are coroutine by judging the vector (buffer queue) is full or empty.
+main.lua has a clear procedure to train network. Producer and consumer threads are coroutine by judging whether the fresh data in buffer queue is full or empty.
 
   
 
